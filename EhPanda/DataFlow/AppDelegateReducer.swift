@@ -57,7 +57,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         AppReducer()
     }
 
-    static var orientationMask: UIInterfaceOrientationMask = DeviceUtil.isPad ? .all : [.portrait, .portraitUpsideDown]
+    static var orientationMask: UIInterfaceOrientationMask = .all
 
     func application(
         _ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?

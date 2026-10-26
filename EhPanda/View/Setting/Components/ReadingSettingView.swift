@@ -9,19 +9,17 @@ import ComposableArchitecture
 struct ReadingSettingView: View {
     @Binding private var readingDirection: ReadingDirection
     @Binding private var prefetchLimit: Int
-    @Binding private var enablesLandscape: Bool
     @Binding private var contentDividerHeight: Double
     @Binding private var maximumScaleFactor: Double
     @Binding private var doubleTapScaleFactor: Double
 
     init(
         readingDirection: Binding<ReadingDirection>, prefetchLimit: Binding<Int>,
-        enablesLandscape: Binding<Bool>, contentDividerHeight: Binding<Double>,
+        contentDividerHeight: Binding<Double>,
         maximumScaleFactor: Binding<Double>, doubleTapScaleFactor: Binding<Double>
     ) {
         _readingDirection = readingDirection
         _prefetchLimit = prefetchLimit
-        _enablesLandscape = enablesLandscape
         _contentDividerHeight = contentDividerHeight
         _maximumScaleFactor = maximumScaleFactor
         _doubleTapScaleFactor = doubleTapScaleFactor
@@ -42,9 +40,6 @@ struct ReadingSettingView: View {
                     }
                 }
                 .pickerStyle(.menu)
-                if !DeviceUtil.isPad {
-                    Toggle(L10n.Localizable.ReadingSettingView.Title.enablesLandscape, isOn: $enablesLandscape)
-                }
             }
             Section(L10n.Localizable.ReadingSettingView.Section.Title.appearance) {
                 Picker(
@@ -121,11 +116,10 @@ private extension Double {
 
 struct ReadingSettingView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             ReadingSettingView(
                 readingDirection: .constant(.vertical),
                 prefetchLimit: .constant(10),
-                enablesLandscape: .constant(false),
                 contentDividerHeight: .constant(0),
                 maximumScaleFactor: .constant(3),
                 doubleTapScaleFactor: .constant(2)

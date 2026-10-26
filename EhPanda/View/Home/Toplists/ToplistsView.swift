@@ -64,32 +64,16 @@ struct ToplistsView: View {
         .toolbar(content: toolbar)
         .navigationTitle(navigationTitle)
 
-        if DeviceUtil.isPad {
-            content
-                .sheet(item: $store.route.sending(\.setNavigation).detail, id: \.self) { route in
-                    NavigationView {
-                        DetailView(
-                            store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
-                            gid: route.wrappedValue, user: user, setting: $setting,
-                            blurRadius: blurRadius, tagTranslator: tagTranslator
-                        )
-                    }
-                    .autoBlur(radius: blurRadius).environment(\.inSheet, true).navigationViewStyle(.stack)
-                }
-        } else {
-            content
-        }
+        content
     }
 
     @ViewBuilder private var navigationLink: some View {
-        if DeviceUtil.isPhone {
-            NavigationLink(unwrapping: $store.route, case: \.detail) { route in
-                DetailView(
-                    store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
-                    gid: route.wrappedValue, user: user, setting: $setting,
-                    blurRadius: blurRadius, tagTranslator: tagTranslator
-                )
-            }
+        RouteDestination(unwrapping: $store.route, case: \.detail) { route in
+            DetailView(
+                store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
+                gid: route.wrappedValue, user: user, setting: $setting,
+                blurRadius: blurRadius, tagTranslator: tagTranslator
+            )
         }
     }
     private func toolbar() -> some ToolbarContent {
@@ -100,7 +84,7 @@ struct ToplistsView: View {
                 }
             }
             if AppUtil.galleryHost == .ehentai {
-                JumpPageButton(pageNumber: store.pageNumber ?? .init(), hideText: true) {
+                JumpPageButton(pageNumber: store.pageNumber ?? .init()) {
                     store.send(.presentJumpPageAlert)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         store.send(.setJumpPageAlertFocused(true))
@@ -150,7 +134,7 @@ extension ToplistsType {
 
 struct ToplistsView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             ToplistsView(
                 store: .init(initialState: .init(), reducer: ToplistsReducer.init),
                 user: .init(),

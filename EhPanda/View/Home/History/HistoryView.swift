@@ -50,32 +50,16 @@ struct HistoryView: View {
         .toolbar(content: toolbar)
         .navigationTitle(L10n.Localizable.HistoryView.Title.history)
 
-        if DeviceUtil.isPad {
-            content
-                .sheet(item: $store.route.sending(\.setNavigation).detail, id: \.self) { route in
-                    NavigationView {
-                        DetailView(
-                            store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
-                            gid: route.wrappedValue, user: user, setting: $setting,
-                            blurRadius: blurRadius, tagTranslator: tagTranslator
-                        )
-                    }
-                    .autoBlur(radius: blurRadius).environment(\.inSheet, true).navigationViewStyle(.stack)
-                }
-        } else {
-            content
-        }
+        content
     }
 
     @ViewBuilder private var navigationLink: some View {
-        if DeviceUtil.isPhone {
-            NavigationLink(unwrapping: $store.route, case: \.detail) { route in
-                DetailView(
-                    store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
-                    gid: route.wrappedValue, user: user, setting: $setting,
-                    blurRadius: blurRadius, tagTranslator: tagTranslator
-                )
-            }
+        RouteDestination(unwrapping: $store.route, case: \.detail) { route in
+            DetailView(
+                store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
+                gid: route.wrappedValue, user: user, setting: $setting,
+                blurRadius: blurRadius, tagTranslator: tagTranslator
+            )
         }
     }
     private func toolbar() -> some ToolbarContent {
@@ -101,7 +85,7 @@ struct HistoryView: View {
 
 struct HistoryView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             HistoryView(
                 store: .init(initialState: .init(), reducer: HistoryReducer.init),
                 user: .init(),

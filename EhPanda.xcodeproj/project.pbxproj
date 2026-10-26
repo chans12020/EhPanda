@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D00100000000000000000001 /* LayoutMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D00100000000000000000002 /* LayoutMetrics.swift */; };
 		AB0929B6277F043D00F107CA /* AccountSettingReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0929B5277F043D00F107CA /* AccountSettingReducer.swift */; };
 		AB0929BE2780032400F107CA /* EhSettingReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0929BD2780032400F107CA /* EhSettingReducer.swift */; };
 		AB0929C027805A8200F107CA /* LoginReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB0929BF27805A8200F107CA /* LoginReducer.swift */; };
@@ -317,6 +318,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D00100000000000000000002 /* LayoutMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutMetrics.swift; sourceTree = "<group>"; };
 		AB0929B5277F043D00F107CA /* AccountSettingReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSettingReducer.swift; sourceTree = "<group>"; };
 		AB0929BD2780032400F107CA /* EhSettingReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EhSettingReducer.swift; sourceTree = "<group>"; };
 		AB0929BF27805A8200F107CA /* LoginReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginReducer.swift; sourceTree = "<group>"; };
@@ -879,6 +881,7 @@
 				EA698C022CCDD2FB0058BC19 /* EquatableVoid.swift */,
 				EA698C082CCDE7050058BC19 /* IdentifiableBox.swift */,
 				ABBB2670279AFA61007B6149 /* EnvironmentKeys.swift */,
+				D00100000000000000000002 /* LayoutMetrics.swift */,
 			);
 			path = Tools;
 			sourceTree = "<group>";
@@ -1939,6 +1942,7 @@
 				ABD49D64277C7AD5003D1A07 /* TabBarReducer.swift in Sources */,
 				ABF45AF025F3313D00ECB568 /* CommentsView.swift in Sources */,
 				ABBB2671279AFA61007B6149 /* EnvironmentKeys.swift in Sources */,
+				D00100000000000000000001 /* LayoutMetrics.swift in Sources */,
 				AB7BF2DA27AA78CF001865A3 /* Reducer_Extension.swift in Sources */,
 				ABBD2B602768D7AD0072AED2 /* GalleryRankingCell.swift in Sources */,
 				ABBB263A2792588F007B6149 /* TTProgressHUD_Extension.swift in Sources */,

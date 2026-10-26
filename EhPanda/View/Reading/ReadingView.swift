@@ -10,6 +10,9 @@ import ComposableArchitecture
 
 struct ReadingView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @State private var layout = LayoutMetrics()
+    @State private var appliedPagination: [Bool] = []
+    @State private var pendingPageIndex: Int?
 
     @Bindable var store: StoreOf<ReadingReducer>
     private let gid: String
@@ -39,23 +42,20 @@ struct ReadingView: View {
     var body: some View {
         changeTriggers(content: { content })
             .sheet(item: $store.route.sending(\.setNavigation).readingSetting) { _ in
-                NavigationView {
+                NavigationStack {
                     ReadingSettingView(
                         readingDirection: $setting.readingDirection,
                         prefetchLimit: $setting.prefetchLimit,
-                        enablesLandscape: $setting.enablesLandscape,
                         contentDividerHeight: $setting.contentDividerHeight,
                         maximumScaleFactor: $setting.maximumScaleFactor,
                         doubleTapScaleFactor: $setting.doubleTapScaleFactor
                     )
                     .toolbar {
-                        if !DeviceUtil.isPad && DeviceUtil.isLandscape {
-                            CustomToolbarItem(placement: .cancellationAction) {
-                                Button {
-                                    store.send(.setNavigation(nil))
-                                } label: {
-                                    Image(systemSymbol: .chevronDown)
-                                }
+                        CustomToolbarItem(placement: .cancellationAction) {
+                            Button {
+                                store.send(.setNavigation(nil))
+                            } label: {
+                                Label(L10n.Localizable.EhSettingView.ToolbarItem.Button.done, systemSymbol: .chevronDown)
                             }
                         }
                     }
@@ -63,7 +63,6 @@ struct ReadingView: View {
                 .accentColor(setting.accentColor)
                 .tint(setting.accentColor)
                 .autoBlur(radius: blurRadius)
-                .navigationViewStyle(.stack)
             }
             .sheet(item: $store.route.sending(\.setNavigation).share) { shareItemBox in
                 ActivityView(activityItems: [shareItemBox.wrappedValue.associatedValue])
@@ -86,64 +85,95 @@ struct ReadingView: View {
                 liveTextHandler.cancelRequests()
                 setAutoPlayPolocy(.off)
             }
-            .onAppear { store.send(.onAppear(gid, setting.enablesLandscape)) }
+            .onAppear { store.send(.onAppear(gid)) }
+    }
+
+    private var isDualPage: Bool {
+        layout.supportsTwoPages && setting.enablesDualPageMode && setting.readingDirection != .vertical
+    }
+
+    private var pagination: [Bool] {
+        [isDualPage, setting.exceptCover, setting.readingDirection == .vertical]
     }
 
     var content: some View {
         ZStack {
             backgroundColor.ignoresSafeArea()
-
-            ZStack {
-                if setting.readingDirection == .vertical {
-                    AdvancedList(
-                        page: page,
-                        data: store.state.containerDataSource(setting: setting),
-                        id: \.self,
-                        spacing: setting.contentDividerHeight,
-                        gesture: SimultaneousGesture(magnificationGesture, tapGesture),
-                        content: imageStack
-                    )
-                    .scrollDisabled(gestureHandler.scale != 1)
-                } else {
-                    Pager(
-                        page: page,
-                        data: store.state.containerDataSource(setting: setting),
-                        id: \.self,
-                        content: imageStack
-                    )
-                    .horizontal(setting.readingDirection == .rightToLeft ? .endToStart : .startToEnd)
-                    .swipeInteractionArea(.allAvailable)
-                    .allowsDragging(gestureHandler.scale == 1)
+            if #available(iOS 27.1, *) {
+                // The system keeps controls below/beside the fold and pages above/on the leading side.
+                ArrangementView {
+                    controlPanel
+                } secondary: {
+                    pageContent
+                }
+                .arrangementViewStyle(.overlay)
+            } else {
+                ZStack {
+                    pageContent
+                    controlPanel
                 }
             }
-            .scaleEffect(gestureHandler.scale, anchor: gestureHandler.scaleAnchor)
-            .offset(gestureHandler.offset)
-            .highPriorityGesture(
-                dragGesture.simultaneously(with: tapGesture),
-                isEnabled: gestureHandler.scale > 1
-            )
-            .gesture(tapGesture, isEnabled: gestureHandler.scale == 1)
-            .gesture(magnificationGesture)
-            .ignoresSafeArea()
-            .id(store.databaseLoadingState)
-            .id(store.forceRefreshID)
-
-            ControlPanel(
-                showsPanel: $store.showsPanel,
-                showsSliderPreview: $store.showsSliderPreview,
-                sliderValue: $pageHandler.sliderValue, setting: $setting,
-                enablesLiveText: $liveTextHandler.enablesLiveText,
-                autoPlayPolicy: .init(get: { autoPlayHandler.policy }, set: { setAutoPlayPolocy($0) }),
-                range: 1...Float(store.gallery.pageCount),
-                previewURLs: store.previewURLs,
-                dismissGesture: controlPanelDismissGesture,
-                dismissAction: { store.send(.onPerformDismiss) },
-                navigateSettingAction: { store.send(.setNavigation(.readingSetting())) },
-                reloadAllImagesAction: { store.send(.reloadAllWebImages) },
-                retryAllFailedImagesAction: { store.send(.retryAllFailedWebImages) },
-                fetchPreviewURLsAction: { store.send(.fetchPreviewURLs($0)) }
-            )
         }
+    }
+
+    private var pageContent: some View {
+        ZStack {
+            if setting.readingDirection == .vertical {
+                AdvancedList(
+                    page: page,
+                    data: store.state.containerDataSource(setting: setting, dualPage: false),
+                    id: \.self,
+                    spacing: setting.contentDividerHeight,
+                    gesture: SimultaneousGesture(magnificationGesture, tapGesture),
+                    content: imageStack
+                )
+                .scrollDisabled(gestureHandler.scale != 1)
+            } else {
+                Pager(
+                    page: page,
+                    data: store.state.containerDataSource(setting: setting, dualPage: isDualPage),
+                    id: \.self,
+                    content: imageStack
+                )
+                .horizontal(setting.readingDirection == .rightToLeft ? .endToStart : .startToEnd)
+                .swipeInteractionArea(.allAvailable)
+                .allowsDragging(gestureHandler.scale == 1)
+            }
+        }
+        .scaleEffect(gestureHandler.scale, anchor: gestureHandler.scaleAnchor)
+        .offset(gestureHandler.offset)
+        .highPriorityGesture(
+            dragGesture.simultaneously(with: tapGesture),
+            isEnabled: gestureHandler.scale > 1
+        )
+        .gesture(tapGesture, isEnabled: gestureHandler.scale == 1)
+        .gesture(magnificationGesture)
+        .id(store.databaseLoadingState)
+        .id(store.forceRefreshID)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .trackLayout($layout)
+        .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .global) }) { frame in
+            gestureHandler.updateViewport(frame)
+        }
+    }
+
+    private var controlPanel: some View {
+        ControlPanel(
+            showsPanel: $store.showsPanel,
+            showsSliderPreview: $store.showsSliderPreview,
+            sliderValue: $pageHandler.sliderValue, setting: $setting,
+            enablesLiveText: $liveTextHandler.enablesLiveText,
+            autoPlayPolicy: .init(get: { autoPlayHandler.policy }, set: { setAutoPlayPolocy($0) }),
+            range: 1...Float(max(1, store.gallery.pageCount)),
+            previewURLs: store.previewURLs,
+            dismissGesture: controlPanelDismissGesture,
+            dismissAction: { store.send(.onPerformDismiss) },
+            navigateSettingAction: { store.send(.setNavigation(.readingSetting())) },
+            reloadAllImagesAction: { store.send(.reloadAllWebImages) },
+            retryAllFailedImagesAction: { store.send(.retryAllFailedWebImages) },
+            fetchPreviewURLsAction: { store.send(.fetchPreviewURLs($0)) }
+        )
     }
 
     @ViewBuilder
@@ -151,24 +181,32 @@ struct ReadingView: View {
         content()
              // Page
             .onChange(of: page.index) { _, newValue in
-                Logger.info("page.index changed", context: ["pageIndex": newValue])
+                // Pager may clamp while its data changes. Preserve the exact selected page during remapping.
+                guard appliedPagination == pagination else { return }
+                if let pending = pendingPageIndex {
+                    pendingPageIndex = nil
+                    if pending == newValue { return }
+                }
                 let newValue = pageHandler.mapFromPager(
-                    index: newValue, pageCount: store.gallery.pageCount, setting: setting
+                    index: newValue, pageCount: store.gallery.pageCount, setting: setting, dualPage: isDualPage
                 )
                 pageHandler.sliderValue = .init(newValue)
-                if store.databaseLoadingState == .idle {
-                    store.send(.syncReadingProgress(.init(newValue)))
-                }
             }
             .onChange(of: pageHandler.sliderValue) { _, newValue in
                 Logger.info("pageHandler.sliderValue changed", context: ["sliderValue": newValue])
                 if !store.showsSliderPreview {
                     setPageIndex(sliderValue: newValue)
+                    if store.databaseLoadingState == .idle {
+                        store.send(.syncReadingProgress(Int(newValue)))
+                    }
                 }
             }
             .onChange(of: store.showsSliderPreview) { _, newValue in
                 Logger.info("store.showsSliderPreview changed", context: ["isShown": newValue])
-                if !newValue { setPageIndex(sliderValue: pageHandler.sliderValue) }
+                if !newValue {
+                    setPageIndex(sliderValue: pageHandler.sliderValue)
+                    store.send(.syncReadingProgress(Int(pageHandler.sliderValue)))
+                }
                 setAutoPlayPolocy(.off)
             }
             .onChange(of: store.readingProgress) { _, newValue in
@@ -198,16 +236,16 @@ struct ReadingView: View {
                 }
             }
 
-            // Orientation
-            .onChange(of: setting.enablesLandscape) { _, newValue in
-                Logger.info("setting.enablesLandscape changed", context: ["newValue": newValue])
-                store.send(.setOrientationPortrait(!newValue))
+            // A fold, a cover preference, or a direction change must retain the selected page.
+            .onChange(of: pagination, initial: true) { _, newValue in
+                appliedPagination = newValue
+                setPageIndex(sliderValue: pageHandler.sliderValue)
+                setAutoPlayPolocy(.off)
             }
     }
 
     @ViewBuilder private func imageStack(index: Int) -> some View {
-        let imageStackConfig = store.state.imageContainerConfigs(index: index, setting: setting)
-        let isDualPage = setting.enablesDualPageMode && setting.readingDirection != .vertical && DeviceUtil.isLandscape
+        let imageStackConfig = store.state.imageContainerConfigs(index: index, setting: setting, dualPage: isDualPage)
         HorizontalImageStack(
             index: index,
             isDualPage: isDualPage,
@@ -238,9 +276,11 @@ struct ReadingView: View {
 extension ReadingView {
     func setPageIndex(sliderValue: Float) {
         let newValue = pageHandler.mapToPager(
-            index: .init(sliderValue), setting: setting
+            index: min(max(1, Int(sliderValue)), max(1, store.gallery.pageCount)),
+            setting: setting, dualPage: isDualPage
         )
         if page.index != newValue {
+            pendingPageIndex = newValue
             page.update(.new(index: newValue))
             Logger.info("Pager.update", context: ["update": newValue])
         }
@@ -339,6 +379,9 @@ extension ReadingView {
 
 // MARK: HorizontalImageStack
 private struct HorizontalImageStack: View {
+    @Environment(\.layoutMetrics) private var layout
+    private var pageWidth: CGFloat { layout.width / (isDualPage ? 2 : 1) }
+
     private let index: Int
     private let isDualPage: Bool
     private let isDatabaseLoading: Bool
@@ -400,9 +443,13 @@ private struct HorizontalImageStack: View {
         HStack(spacing: 0) {
             if config.isFirstAvailable {
                 imageContainer(index: config.firstIndex)
+            } else if isDualPage {
+                Color.clear.frame(width: pageWidth)
             }
             if config.isSecondAvailable {
                 imageContainer(index: config.secondIndex)
+            } else if isDualPage {
+                Color.clear.frame(width: pageWidth)
             }
         }
     }
@@ -423,6 +470,7 @@ private struct HorizontalImageStack: View {
             loadSucceededAction: loadSucceededAction,
             loadFailedAction: loadFailedAction
         )
+        .frame(width: pageWidth)
         .onAppear {
             if !isDatabaseLoading {
                 if imageURLs[index] == nil {
@@ -471,8 +519,10 @@ private struct HorizontalImageStack: View {
 
 // MARK: ImageContainer
 private struct ImageContainer: View {
+    @Environment(\.layoutMetrics) private var layout
+
     private var width: CGFloat {
-        DeviceUtil.windowW / (isDualPage ? 2 : 1)
+        layout.width / (isDualPage ? 2 : 1)
     }
     private var height: CGFloat {
         width / Defaults.ImageSize.contentAspect
@@ -621,7 +671,7 @@ extension AutoPlayPolicy {
 
 struct ReadingView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             Text("")
                 .fullScreenCover(isPresented: .constant(true)) {
                     ReadingView(

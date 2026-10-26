@@ -100,13 +100,11 @@ struct SettingReducer {
 
     @Dependency(\.uiApplicationClient) private var uiApplicationClient
     @Dependency(\.userDefaultsClient) private var userDefaultsClient
-    @Dependency(\.appDelegateClient) private var appDelegateClient
     @Dependency(\.databaseClient) private var databaseClient
     @Dependency(\.libraryClient) private var libraryClient
     @Dependency(\.hapticsClient) private var hapticsClient
     @Dependency(\.loggerClient) private var loggerClient
     @Dependency(\.cookieClient) private var cookieClient
-    @Dependency(\.deviceClient) private var deviceClient
     @Dependency(\.fileClient) private var fileClient
     @Dependency(\.dfClient) private var dfClient
 
@@ -169,16 +167,8 @@ struct SettingReducer {
                     return .send(.syncSetting)
                 }
             }
-            .onChange(of: \.setting.enablesLandscape) { _, newValue in
-                Reduce { _, _ in
-                    var effects: [Effect<Action>] = [
-                        .send(.syncSetting)
-                    ]
-                    if !newValue && !deviceClient.isPad() {
-                        effects.append(.run(operation: { _ in appDelegateClient.setPortraitOrientationMask() }))
-                    }
-                    return .merge(effects)
-                }
+            .onChange(of: \.setting.enablesLandscape) { _, _ in
+                Reduce { _, _ in .send(.syncSetting) }
             }
             .onChange(of: \.setting.maximumScaleFactor) { _, newValue in
                 Reduce { state, _ in

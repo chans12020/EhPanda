@@ -7,6 +7,7 @@ import SwiftUI
 import Kingfisher
 
 struct TagDetailView: View {
+    @State private var layout = LayoutMetrics()
     private let detail: TagDetail
 
     init(detail: TagDetail) {
@@ -14,7 +15,7 @@ struct TagDetailView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack {
                     DescriptionSection(description: detail.description)
@@ -23,6 +24,7 @@ struct TagDetailView: View {
                 }
             }
             .navigationTitle(detail.title.emojisRipped)
+            .trackLayout($layout)
         }
     }
 }
@@ -44,6 +46,7 @@ private struct DescriptionSection: View {
 }
 
 private struct ImagesSection: View {
+    @Environment(\.layoutMetrics) private var layout
     private let imageURLs: [URL]
 
     init(imageURLs: [URL]) {
@@ -51,7 +54,7 @@ private struct ImagesSection: View {
     }
 
     private var width: CGFloat {
-        Defaults.ImageSize.previewAvgW
+        layout.previewWidth
     }
     private var height: CGFloat {
         width / Defaults.ImageSize.previewAspect

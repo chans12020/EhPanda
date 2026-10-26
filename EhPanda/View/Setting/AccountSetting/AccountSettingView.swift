@@ -75,13 +75,13 @@ struct AccountSettingView: View {
 // MARK: NavigationLinks
 private extension AccountSettingView {
     @ViewBuilder var navigationLinks: some View {
-        NavigationLink(unwrapping: $store.route, case: \.login) { _ in
+        RouteDestination(unwrapping: $store.route, case: \.login) { _ in
             LoginView(
                 store: store.scope(state: \.loginState, action: \.login),
                 bypassesSNIFiltering: bypassesSNIFiltering, blurRadius: blurRadius
             )
         }
-        NavigationLink(unwrapping: $store.route, case: \.ehSetting) { _ in
+        RouteDestination(unwrapping: $store.route, case: \.ehSetting) { _ in
             EhSettingView(
                 store: store.scope(state: \.ehSettingState, action: \.ehSetting),
                 bypassesSNIFiltering: bypassesSNIFiltering, blurRadius: blurRadius
@@ -218,7 +218,7 @@ private struct CookieRow: View {
 
 struct AccountSettingView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             AccountSettingView(
                 store: .init(initialState: .init(), reducer: AccountSettingReducer.init),
                 galleryHost: .constant(.ehentai),

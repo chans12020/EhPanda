@@ -92,35 +92,23 @@ struct ReadingReducer {
         }
 
         // Image
-        func containerDataSource(setting: Setting, isLandscape: Bool = DeviceUtil.isLandscape) -> [Int] {
-            let defaultData = Array(1...gallery.pageCount)
-            guard isLandscape && setting.enablesDualPageMode
-                    && setting.readingDirection != .vertical
-            else { return defaultData }
-
-            let data = setting.exceptCover
-                ? [1] + Array(stride(from: 2, through: gallery.pageCount, by: 2))
-                : Array(stride(from: 1, through: gallery.pageCount, by: 2))
-
-            return data
+        func containerDataSource(setting: Setting, dualPage: Bool) -> [Int] {
+            ReadingPagination.pages(
+                pageCount: gallery.pageCount, dualPage: dualPage, exceptCover: setting.exceptCover
+            )
         }
         func imageContainerConfigs(
-            index: Int, setting: Setting, isLandscape: Bool = DeviceUtil.isLandscape
+            index: Int, setting: Setting, dualPage: Bool
         ) -> ImageStackConfig {
-            let direction = setting.readingDirection
-            let isReversed = direction == .rightToLeft
-            let isFirstSingle = setting.exceptCover
-            let isFirstPageAndSingle = index == 1 && isFirstSingle
-            let isDualPage = isLandscape && setting.enablesDualPageMode && direction != .vertical
-            let firstIndex = isDualPage && isReversed && !isFirstPageAndSingle ? index + 1 : index
-            let secondIndex = firstIndex + (isReversed ? -1 : 1)
-            let isValidFirstRange = firstIndex >= 1 && firstIndex <= gallery.pageCount
-            let isValidSecondRange = isFirstSingle
-                ? secondIndex >= 2 && secondIndex <= gallery.pageCount
-                : secondIndex >= 1 && secondIndex <= gallery.pageCount
+            let pages = ReadingPagination.spread(
+                firstPage: index, pageCount: gallery.pageCount, dualPage: dualPage,
+                exceptCover: setting.exceptCover, rightToLeft: setting.readingDirection == .rightToLeft
+            )
+            let first = pages[0]
+            let second = pages.count > 1 ? pages[1] : nil
             return .init(
-                firstIndex: firstIndex, secondIndex: secondIndex, isFirstAvailable: isValidFirstRange,
-                isSecondAvailable: !isFirstPageAndSingle && isValidSecondRange && isDualPage
+                firstIndex: first ?? 0, secondIndex: second ?? 0,
+                isFirstAvailable: first != nil, isSecondAvailable: second != nil
             )
         }
     }
@@ -130,9 +118,8 @@ struct ReadingReducer {
         case setNavigation(Route?)
 
         case toggleShowsPanel
-        case setOrientationPortrait(Bool)
         case onPerformDismiss
-        case onAppear(String, Bool)
+        case onAppear(String)
 
         case onWebImageRetry(Int)
         case onWebImageSucceeded(Int)
@@ -176,12 +163,10 @@ struct ReadingReducer {
         case fetchMPVImageURLDone(Int, Result<(URL, URL?, String), AppError>)
     }
 
-    @Dependency(\.appDelegateClient) private var appDelegateClient
     @Dependency(\.clipboardClient) private var clipboardClient
     @Dependency(\.databaseClient) private var databaseClient
     @Dependency(\.hapticsClient) private var hapticsClient
     @Dependency(\.cookieClient) private var cookieClient
-    @Dependency(\.deviceClient) private var deviceClient
     @Dependency(\.imageClient) private var imageClient
     @Dependency(\.urlClient) private var urlClient
 
@@ -204,27 +189,11 @@ struct ReadingReducer {
                 state.showsPanel.toggle()
                 return .none
 
-            case .setOrientationPortrait(let isPortrait):
-                var effects = [Effect<Action>]()
-                if isPortrait {
-                    effects.append(.run(operation: { _ in appDelegateClient.setPortraitOrientationMask() }))
-                    effects.append(.run(operation: { _ in await appDelegateClient.setPortraitOrientation() }))
-                } else {
-                    effects.append(.run(operation: { _ in appDelegateClient.setAllOrientationMask() }))
-                }
-                return .merge(effects)
-
             case .onPerformDismiss:
                 return .run(operation: { _ in hapticsClient.generateFeedback(.light) })
 
-            case .onAppear(let gid, let enablesLandscape):
-                var effects: [Effect<Action>] = [
-                    .send(.fetchDatabaseInfos(gid))
-                ]
-                if enablesLandscape {
-                    effects.append(.send(.setOrientationPortrait(false)))
-                }
-                return .merge(effects)
+            case .onAppear(let gid):
+                return .send(.fetchDatabaseInfos(gid))
 
             case .onWebImageRetry(let index):
                 state.imageURLLoadingStates[index] = .idle
@@ -336,13 +305,7 @@ struct ReadingReducer {
                 }
 
             case .teardown:
-                var effects: [Effect<Action>] = [
-                    .merge(CancelID.allCases.map(Effect.cancel(id:)))
-                ]
-                if !deviceClient.isPad() {
-                    effects.append(.send(.setOrientationPortrait(true)))
-                }
-                return .merge(effects)
+                return .merge(CancelID.allCases.map(Effect.cancel(id:)))
 
             case .fetchDatabaseInfos(let gid):
                 guard let gallery = databaseClient.fetchGallery(gid: gid) else { return .none }

@@ -7,6 +7,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct SearchRootView: View {
+    @State private var layout = LayoutMetrics()
     @Bindable private var store: StoreOf<SearchRootReducer>
     private let user: User
     @Binding private var setting: Setting
@@ -25,7 +26,7 @@ struct SearchRootView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             let content =
             ScrollView(showsIndicators: false) {
                 SuggestionsPanel(
@@ -75,31 +76,9 @@ struct SearchRootView: View {
             .background(navigationLinks)
             .toolbar(content: toolbar)
             .navigationTitle(L10n.Localizable.SearchView.Title.search)
+            .trackLayout($layout)
 
-            if DeviceUtil.isPad {
-                content
-                    .sheet(item: $store.route.sending(\.setNavigation).detail, id: \.self) { gid in
-                        NavigationView {
-                            DetailView(
-                                store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
-                                gid: gid,
-                                user: user,
-                                setting: $setting,
-                                blurRadius: blurRadius,
-                                tagTranslator: tagTranslator
-                            )
-                        }
-                        .autoBlur(radius: blurRadius).environment(\.inSheet, true).navigationViewStyle(.stack)
-                    }
-            } else {
-                // Workaround: Prevent the title disappearing issue.
-                if store.historyKeywords.isEmpty && store.historyGalleries.isEmpty {
-                    content
-                        .navigationSubtitle(Text(" "))
-                } else {
-                    content
-                }
-            }
+            content
         }
     }
 
@@ -119,13 +98,11 @@ struct SearchRootView: View {
 
 private extension SearchRootView {
     @ViewBuilder var navigationLinks: some View {
-        if DeviceUtil.isPhone {
-            detailViewLink
-        }
+        detailViewLink
         searchViewLink
     }
     var detailViewLink: some View {
-        NavigationLink(unwrapping: $store.route, case: \.detail) { route in
+        RouteDestination(unwrapping: $store.route, case: \.detail) { route in
             DetailView(
                 store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
                 gid: route.wrappedValue, user: user, setting: $setting,
@@ -134,7 +111,7 @@ private extension SearchRootView {
         }
     }
     var searchViewLink: some View {
-        NavigationLink(unwrapping: $store.route, case: \.search) { _ in
+        RouteDestination(unwrapping: $store.route, case: \.search) { _ in
             SearchView(
                 store: store.scope(state: \.searchState, action: \.search),
                 keyword: store.keyword, user: user, setting: $setting,
@@ -259,6 +236,7 @@ private struct HistoryKeywordsSection: View {
 }
 
 private struct DoubleVerticalKeywordsStack: View {
+    @Environment(\.layoutMetrics) private var layout
     private let keywords: [WrappedKeyword]
     private let searchAction: (String) -> Void
     private let removeAction: ((String) -> Void)?
@@ -292,7 +270,7 @@ private struct DoubleVerticalKeywordsStack: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 30) {
-            if !DeviceUtil.isPad {
+            if !layout.isWide {
                 VerticalKeywordsStack(
                     keywords: singleKeywords,
                     searchAction: searchAction,

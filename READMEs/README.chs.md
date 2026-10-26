@@ -43,3 +43,7 @@ https://ehpanda.app: [main.js](https://github.com/EhPanda-Team/ehpanda-website/b
 
 ## 截图
 https://ehpanda.app
+
+## iPhone Duo 适配
+
+本分支包含 Duo 自适应布局和阅读器修改，需使用 Xcode 27.1 或更新版本编译，最低系统仍为 iOS 26。参见[构建说明与验证状态](../docs/iPhone-Duo.md)。

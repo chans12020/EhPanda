@@ -7,6 +7,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct EhSettingView: View {
+    @State private var layout = LayoutMetrics()
     @Bindable private var store: StoreOf<EhSettingReducer>
     private let bypassesSNIFiltering: Bool
     private let blurRadius: Double
@@ -56,6 +57,7 @@ struct EhSettingView: View {
         }
         .toolbar(content: toolbar)
         .navigationTitle(L10n.Localizable.EhSettingView.Title.hostSettings(galleryHost.rawValue))
+        .trackLayout($layout)
     }
     // MARK: Form
     private func form(ehSetting: Binding<EhSetting>, ehProfile: Binding<EhProfile>) -> some View {
@@ -564,6 +566,7 @@ private struct FilteredRemovalCountSection: View {
 
 // MARK: ExcludedLanguagesSection
 private struct ExcludedLanguagesSection: View {
+    @Environment(\.layoutMetrics) private var layout
     @Binding private var ehSetting: EhSetting
 
     init(ehSetting: Binding<EhSetting>) {
@@ -589,7 +592,7 @@ private struct ExcludedLanguagesSection: View {
         Section {
             HStack {
                 Text("")
-                    .frame(width: DeviceUtil.windowW * 0.25)
+                    .frame(width: layout.width * 0.25)
 
                 ForEach(EhSetting.ExcludedLanguagesCategory.allCases) { category in
                     Color.clear
@@ -618,6 +621,7 @@ private struct ExcludedLanguagesSection: View {
 }
 
 private struct ExcludeRow: View {
+    @Environment(\.layoutMetrics) private var layout
     private let title: String
     private let bindings: [Binding<Bool>]
     private let isFirstRow: Bool
@@ -635,7 +639,7 @@ private struct ExcludeRow: View {
                 .font(.subheadline)
                 .fixedSize()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(width: DeviceUtil.windowW * 0.25)
+                .frame(width: layout.width * 0.25)
 
             ForEach(0..<bindings.count, id: \.self) { index in
                 let shouldHide = isFirstRow && index == 0
@@ -668,6 +672,7 @@ private struct ExcludeToggle: View {
 
 // MARK: ExcludedUploadersSection
 private struct ExcludedUploadersSection: View {
+    @Environment(\.layoutMetrics) private var layout
     @Binding private var ehSetting: EhSetting
     @FocusState var isFocused
 
@@ -679,7 +684,7 @@ private struct ExcludedUploadersSection: View {
         Section {
             TextEditor(text: $ehSetting.excludedUploaders)
                 .textInputAutocapitalization(.none)
-                .frame(maxHeight: DeviceUtil.windowH * 0.3)
+                .frame(maxHeight: layout.height * 0.3)
                 .disableAutocorrection(true)
                 .focused($isFocused)
         } header: {
@@ -1008,7 +1013,7 @@ private extension Text {
 
 struct EhSettingView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             EhSettingView(
                 store: .init(
                     initialState: .init(ehSetting: .empty, ehProfile: .empty, loadingState: .idle),

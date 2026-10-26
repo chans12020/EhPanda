@@ -7,27 +7,28 @@ import SwiftUI
 import TTProgressHUD
 import SwiftUINavigation
 
-extension NavigationLink {
-    init<S: StringProtocol, Value, WrappedDestination>(
-        _ title: S,
-        unwrapping value: Binding<Value?>,
-        @ViewBuilder destination: @escaping (Binding<Value>) -> WrappedDestination
-    ) where Destination == WrappedDestination?, Label == Text {
-        self.init(
-            title,
-            destination: Binding(unwrapping: value).map(destination),
-            isActive: .init(value)
-        )
+/// A destination driven by the existing reducer route. Its identity survives resizing.
+struct RouteDestination<Value, Destination: View>: View {
+    @Binding private var value: Value?
+    private let destination: (Binding<Value>) -> Destination
+
+    init<Enum: Sendable>(
+        unwrapping route: Binding<Enum?>,
+        case caseKeyPath: CaseKeyPath<Enum, Value>,
+        @ViewBuilder destination: @escaping (Binding<Value>) -> Destination
+    ) {
+        _value = route.case(caseKeyPath)
+        self.destination = destination
     }
-    init<Enum, Case, WrappedDestination>(
-        unwrapping enum: Binding<Enum?>,
-        case caseKeyPath: CaseKeyPath<Enum, Case>,
-        @ViewBuilder destination: @escaping (Binding<Case>) -> WrappedDestination
-    ) where Destination == WrappedDestination?, Label == Text {
-        self.init(
-            "", unwrapping: `enum`.case(caseKeyPath),
-            destination: destination
-        )
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .navigationDestination(isPresented: $value.isRemovedDuplicatesPresent()) {
+                if let value = Binding(unwrapping: $value) {
+                    destination(value)
+                }
+            }
     }
 }
 

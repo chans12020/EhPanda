@@ -1,16 +1,28 @@
 name: Test
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches-ignore:
+      - codex/iphone-duo-adaptation
+  workflow_dispatch:
 env:
    SCHEME_NAME: 'EhPanda'
-   DEVELOPER_DIR: /Applications/Xcode_26.6.app
+   DEVELOPER_DIR: /Applications/Xcode_27.1.app
 jobs:
   Test:
-    runs-on: macos-26
+    runs-on: xcode-27
     if: ${{ !contains(github.event.head_commit.message, '[skip test]') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: iPhone Duo
+            os: '27.1'
+          - device: iPhone Air
+            os: '27.0'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Install iOS 26 Platform
+      - name: Install iOS 27.1 Platform
         uses: nick-fields/retry@v4
         with:
           retry_on: error
@@ -19,8 +31,10 @@ jobs:
           command: xcodebuild -downloadPlatform iOS
       - name: Show Xcode version
         run: xcodebuild -version
+      - name: Check adaptive layout and pagination
+        run: ./actions-tool/check-duo-layout.sh
       - name: Run tests
         run: xcodebuild clean test
           -skipMacroValidation
           -scheme ${{ env.SCHEME_NAME }}
-          -destination 'platform=iOS Simulator,name=iPhone Air'
+          -destination 'platform=iOS Simulator,name=${{ matrix.device }},OS=${{ matrix.os }}'

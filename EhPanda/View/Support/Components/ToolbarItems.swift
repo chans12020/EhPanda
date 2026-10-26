@@ -11,7 +11,7 @@ struct CustomToolbarItem<Content: View>: ToolbarContent {
     private let disabled: Bool
     private let content: Content
 
-    init(placement: ToolbarItemPlacement = .navigationBarTrailing,
+    init(placement: ToolbarItemPlacement = .primaryAction,
          tint: Color? = nil, disabled: Bool = false,
          @ViewBuilder content: () -> Content
     ) {
@@ -22,12 +22,10 @@ struct CustomToolbarItem<Content: View>: ToolbarContent {
     }
 
     var body: some ToolbarContent {
-        ToolbarItem(placement: placement) {
-            HStack(spacing: 14) {
-                content
-            }
-            .foregroundColor(tint)
-            .disabled(disabled)
+        ToolbarItemGroup(placement: placement) {
+            content
+                .foregroundColor(tint)
+                .disabled(disabled)
         }
     }
 }
@@ -45,67 +43,52 @@ struct ToolbarFeaturesMenu<Content: View>: View {
         Menu {
             content
         } label: {
-            Image(systemSymbol: .ellipsisCircle)
+            Label("toolbar_item.button.more", systemSymbol: .ellipsisCircle)
                 .symbolRenderingMode(symbolRenderingMode)
         }
     }
 }
 
 struct FiltersButton: View {
-    private let hideText: Bool
     private let action: () -> Void
 
-    init(hideText: Bool = false, action: @escaping () -> Void) {
-        self.hideText = hideText
+    init(action: @escaping () -> Void) {
         self.action = action
     }
 
     var body: some View {
         Button(action: action) {
-            Image(systemSymbol: .line3HorizontalDecrease)
-            if !hideText {
-                Text(L10n.Localizable.ToolbarItem.Button.filters)
-            }
+            Label(L10n.Localizable.ToolbarItem.Button.filters, systemSymbol: .line3HorizontalDecrease)
         }
     }
 }
 
 struct QuickSearchButton: View {
-    private let hideText: Bool
     private let action: () -> Void
 
-    init(hideText: Bool = false, action: @escaping () -> Void) {
-        self.hideText = hideText
+    init(action: @escaping () -> Void) {
         self.action = action
     }
 
     var body: some View {
         Button(action: action) {
-            Image(systemSymbol: .magnifyingglass)
-            if !hideText {
-                Text(L10n.Localizable.ToolbarItem.Button.quickSearch)
-            }
+            Label(L10n.Localizable.ToolbarItem.Button.quickSearch, systemSymbol: .magnifyingglass)
         }
     }
 }
 
 struct JumpPageButton: View {
     private let pageNumber: PageNumber
-    private let hideText: Bool
     private let action: () -> Void
 
-    init(pageNumber: PageNumber, hideText: Bool = false, action: @escaping () -> Void) {
+    init(pageNumber: PageNumber, action: @escaping () -> Void) {
         self.pageNumber = pageNumber
-        self.hideText = hideText
         self.action = action
     }
 
     var body: some View {
         Button(action: action) {
-            Image(systemSymbol: .arrowshapeBounceForward)
-            if !hideText {
-                Text(L10n.Localizable.ToolbarItem.Button.jumpPage)
-            }
+            Label(L10n.Localizable.ToolbarItem.Button.jumpPage, systemSymbol: .arrowshapeBounceForward)
         }
         .disabled(pageNumber.isSinglePage)
     }

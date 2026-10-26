@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct Placeholder: View {
+    @Environment(\.layoutMetrics) private var layout
     @Environment(\.inSheet) private var inSheet
     private let style: PlaceholderStyle
 
@@ -28,7 +29,7 @@ struct Placeholder: View {
                     Text(String(pageNumber)).font(.largeTitle.bold())
                         .foregroundColor(.gray).padding(.bottom, 30)
                     ProgressView(progress).progressViewStyle(.plainLinear)
-                        .frame(width: DeviceUtil.absWindowW * (isDualPage ? 0.25 : 0.5))
+                        .frame(width: layout.width * (isDualPage ? 0.25 : 0.5))
                 }
             }
         }

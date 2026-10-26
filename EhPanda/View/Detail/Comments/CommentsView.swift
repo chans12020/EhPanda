@@ -8,6 +8,7 @@ import Kingfisher
 import ComposableArchitecture
 
 struct CommentsView: View {
+    @State private var layout = LayoutMetrics()
     @Bindable private var store: StoreOf<CommentsReducer>
     private let gid: String
     private let token: String
@@ -122,6 +123,7 @@ struct CommentsView: View {
         .background(navigationLink)
         .toolbar(content: toolbar)
         .navigationTitle(L10n.Localizable.CommentsView.Title.comments)
+        .trackLayout($layout)
     }
 
     private func toolbar() -> some ToolbarContent {
@@ -139,7 +141,7 @@ struct CommentsView: View {
 // MARK: NavigationLinks
 private extension CommentsView {
     @ViewBuilder var navigationLink: some View {
-        NavigationLink(unwrapping: $store.route, case: \.detail) { route in
+        RouteDestination(unwrapping: $store.route, case: \.detail) { route in
             DetailView(
                 store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
                 gid: route.wrappedValue, user: user, setting: $setting,
@@ -151,6 +153,7 @@ private extension CommentsView {
 
 // MARK: CommentCell
 private struct CommentCell: View {
+    @Environment(\.layoutMetrics) private var layout
     private let gid: String
     private var comment: GalleryComment
     private let linkAction: (URL) -> Void
@@ -243,7 +246,7 @@ private struct CommentCell: View {
     ) -> some View {
         let image = KFImage(url)
             .commentDefaultModifier().scaledToFit()
-            .frame(width: DeviceUtil.windowW / widthFactor)
+            .frame(width: layout.width / widthFactor)
         if let action = action {
             Button(action: action) {
                 image
@@ -266,7 +269,7 @@ private extension KFImage {
 
 struct CommentsView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             CommentsView(
                 store: .init(initialState: .init(), reducer: CommentsReducer.init),
                 gid: .init(),

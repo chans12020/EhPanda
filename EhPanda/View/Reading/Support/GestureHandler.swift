@@ -12,14 +12,30 @@ final class GestureHandler: ObservableObject {
     @Published private var baseScale: Double = 1
     @Published private var newOffset: CGSize = .zero
 
+    private var viewport: CGRect = .zero
+    private var localTouchPoint: CGPoint? {
+        guard let point = TouchHandler.shared.currentPoint, viewport.contains(point) else { return nil }
+        return CGPoint(x: point.x - viewport.minX, y: point.y - viewport.minY)
+    }
+
+    func updateViewport(_ frame: CGRect) {
+        guard viewport != frame else { return }
+        viewport = frame
+        scale = 1
+        baseScale = 1
+        scaleAnchor = .center
+        offset = .zero
+        newOffset = .zero
+    }
+
     private func edgeWidth(x: Double) -> Double {
-        let marginW = DeviceUtil.absWindowW * (scale - 1) / 2
+        let marginW = max(1, viewport.width) * (scale - 1) / 2
         let leadingMargin = scaleAnchor.x / 0.5 * marginW
         let trailingMargin = (1 - scaleAnchor.x) / 0.5 * marginW
         return min(max(x, -trailingMargin), leadingMargin)
     }
     private func edgeHeight(y: Double) -> Double {
-        let marginH = DeviceUtil.absWindowH * (scale - 1) / 2
+        let marginH = max(1, viewport.height) * (scale - 1) / 2
         let topMargin = scaleAnchor.y / 0.5 * marginH
         let bottomMargin = (1 - scaleAnchor.y) / 0.5 * marginH
         return min(max(y, -bottomMargin), topMargin)
@@ -29,8 +45,8 @@ final class GestureHandler: ObservableObject {
         offset.height = edgeHeight(y: offset.height)
     }
     private func correctScaleAnchor(point: CGPoint) {
-        let x = min(1, max(0, point.x / DeviceUtil.absWindowW))
-        let y = min(1, max(0, point.y / DeviceUtil.absWindowH))
+        let x = min(1, max(0, point.x / max(1, viewport.width)))
+        let y = min(1, max(0, point.y / max(1, viewport.height)))
         scaleAnchor = .init(x: x, y: y)
     }
     private func setOffset(_ offset: CGSize) {
@@ -50,15 +66,15 @@ final class GestureHandler: ObservableObject {
     ) {
         Logger.info("onSingleTapGestureEnded", context: ["readingDirection": readingDirection])
         guard readingDirection != .vertical,
-              let pointX = TouchHandler.shared.currentPoint?.x
+              let pointX = localTouchPoint?.x
         else {
             toggleShowsPanelAction()
             return
         }
         let rightToLeft = readingDirection == .rightToLeft
-        if pointX < DeviceUtil.absWindowW * 0.2 {
+        if pointX < max(1, viewport.width) * 0.2 {
             setPageIndexOffsetAction(rightToLeft ? 1 : -1)
-        } else if pointX > DeviceUtil.absWindowW * (1 - 0.2) {
+        } else if pointX > max(1, viewport.width) * (1 - 0.2) {
             setPageIndexOffsetAction(rightToLeft ? -1 : 1)
         } else {
             toggleShowsPanelAction()
@@ -70,7 +86,7 @@ final class GestureHandler: ObservableObject {
             "scaleMaximum": scaleMaximum, "doubleTapScale": doubleTapScale
         ])
         let newScale = scale == 1 ? doubleTapScale : 1
-        if let point = TouchHandler.shared.currentPoint {
+        if let point = localTouchPoint {
             correctScaleAnchor(point: point)
         }
         setOffset(.zero)
@@ -84,7 +100,7 @@ final class GestureHandler: ObservableObject {
         if value == 1 {
             baseScale = scale
         }
-        if let point = TouchHandler.shared.currentPoint {
+        if let point = localTouchPoint {
             correctScaleAnchor(point: point)
         }
         setScale(scale: value * baseScale, maximum: scaleMaximum)

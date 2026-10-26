@@ -20,7 +20,7 @@ struct TorrentsView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 List(store.torrents) { torrent in
                     TorrentRow(torrent: torrent) { magnetURL in

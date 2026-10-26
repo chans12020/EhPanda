@@ -8,6 +8,7 @@ import SFSafeSymbols
 import ComposableArchitecture
 
 struct TabBarView: View {
+    @State private var layout = LayoutMetrics()
     @Environment(\.scenePhase) private var scenePhase
     @Bindable private var store: StoreOf<AppReducer>
 
@@ -82,7 +83,7 @@ struct TabBarView: View {
             .autoBlur(radius: store.appLockState.blurRadius)
         }
         .sheet(item: $store.appRouteState.route.sending(\.appRoute.setNavigation).detail, id: \.self) { route in
-            NavigationView {
+            NavigationStack {
                 DetailView(
                     store: store.scope(
                         state: \.appRouteState.detailState.wrappedValue!,
@@ -97,7 +98,6 @@ struct TabBarView: View {
             .accentColor(store.settingState.setting.accentColor)
             .autoBlur(radius: store.appLockState.blurRadius)
             .environment(\.inSheet, true)
-            .navigationViewStyle(.stack)
         }
         .progressHUD(
             config: store.appRouteState.hudConfig,
@@ -106,6 +106,7 @@ struct TabBarView: View {
         )
         .onChange(of: scenePhase) { _, newValue in store.send(.onScenePhaseChange(newValue)) }
         .onOpenURL { store.send(.appRoute(.handleDeepLink($0))) }
+        .trackLayout($layout)
     }
 }
 

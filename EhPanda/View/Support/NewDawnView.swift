@@ -6,14 +6,15 @@
 import SwiftUI
 
 struct NewDawnView: View {
+    @State private var layout = LayoutMetrics()
     @Environment(\.colorScheme) private var colorScheme
     private let greeting: Greeting
 
     private var offset: Double {
-        DeviceUtil.windowW * 0.2
+        layout.width * 0.2
     }
     private var sunWidth: Double {
-        DeviceUtil.windowW * (DeviceUtil.isPad ? 0.5 : 0.6)
+        layout.width * (layout.isWide ? 0.5 : 0.6)
     }
 
     private var gradientColors: [Color] {
@@ -58,6 +59,7 @@ struct NewDawnView: View {
         }
         .drawingGroup()
         .ignoresSafeArea()
+        .trackLayout($layout)
     }
 }
 

@@ -8,6 +8,7 @@ import Kingfisher
 import ComposableArchitecture
 
 struct PreviewsView: View {
+    @State private var layout = LayoutMetrics()
     @Bindable private var store: StoreOf<PreviewsReducer>
     private let gid: String
     @Binding private var setting: Setting
@@ -26,8 +27,8 @@ struct PreviewsView: View {
     private var gridItems: [GridItem] {
         [GridItem(
             .adaptive(
-                minimum: Defaults.ImageSize.previewMinW,
-                maximum: Defaults.ImageSize.previewMaxW
+                minimum: layout.previewMinWidth,
+                maximum: layout.previewMaxWidth
             ),
             spacing: 10
         )]
@@ -53,7 +54,7 @@ struct PreviewsView: View {
                                 .scaledToFit()
                         }
                         Text("\(index)")
-                            .font(DeviceUtil.isPadWidth ? .callout : .caption)
+                            .font(layout.isWide ? .callout : .caption)
                             .foregroundColor(.secondary)
                     }
                     .onAppear {
@@ -81,12 +82,13 @@ struct PreviewsView: View {
             store.send(.fetchDatabaseInfos(gid))
         }
         .navigationTitle(L10n.Localizable.PreviewsView.Title.previews)
+        .trackLayout($layout)
     }
 }
 
 struct PreviewsView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             PreviewsView(
                 store: .init(initialState: .init(gallery: .preview), reducer: PreviewsReducer.init),
                 gid: .init(),

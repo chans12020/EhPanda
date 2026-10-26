@@ -904,3 +904,6 @@
 "enum.browsing_country.name.yemen" = "Yemen";
 "enum.browsing_country.name.zambia" = "Zambia";
 "enum.browsing_country.name.zimbabwe" = "Zimbabwe";
+
+/* Title for toolbar overflow menus on either bar axis. */
+"toolbar_item.button.more" = "More";

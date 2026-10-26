@@ -7,6 +7,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct FiltersView: View {
+    @State private var layout = LayoutMetrics()
     @Bindable private var store: StoreOf<FiltersReducer>
 
     @FocusState private var focusedBound: FiltersReducer.FocusedBound?
@@ -28,7 +29,7 @@ struct FiltersView: View {
 
     // MARK: FilterView
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 BasicSection(
                     route: $store.route,
@@ -43,6 +44,7 @@ struct FiltersView: View {
             }
             .synchronize($store.focusedBound, $focusedBound)
             .navigationTitle(L10n.Localizable.FiltersView.Title.filters)
+            .trackLayout($layout)
             .onAppear { store.send(.fetchFilters) }
         }
     }

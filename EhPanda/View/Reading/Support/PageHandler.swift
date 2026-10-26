@@ -12,27 +12,13 @@ final class PageHandler: ObservableObject {
         }
     }
 
-    func mapFromPager(index: Int, pageCount: Int, setting: Setting, isLandscape: Bool = DeviceUtil.isLandscape) -> Int {
-        guard isLandscape && setting.enablesDualPageMode
-                && setting.readingDirection != .vertical
-        else { return index + 1 }
-        guard index > 0 else { return 1 }
-
-        let result = setting.exceptCover ? index * 2 : index * 2 + 1
-
-        if result + 1 == pageCount {
-            return pageCount
-        } else {
-            return result
-        }
+    func mapFromPager(index: Int, pageCount: Int, setting: Setting, dualPage: Bool) -> Int {
+        ReadingPagination.page(
+            index: index, pageCount: pageCount, dualPage: dualPage, exceptCover: setting.exceptCover
+        )
     }
 
-    func mapToPager(index: Int, setting: Setting, isLandscape: Bool = DeviceUtil.isLandscape) -> Int {
-        guard isLandscape && setting.enablesDualPageMode
-                && setting.readingDirection != .vertical
-        else { return index - 1 }
-        guard index > 1 else { return 0 }
-
-        return setting.exceptCover ? index / 2 : (index - 1) / 2
+    func mapToPager(index: Int, setting: Setting, dualPage: Bool) -> Int {
+        ReadingPagination.pagerIndex(page: index, dualPage: dualPage, exceptCover: setting.exceptCover)
     }
 }

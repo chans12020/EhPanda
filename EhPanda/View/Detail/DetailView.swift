@@ -9,6 +9,7 @@ import ComposableArchitecture
 import CommonMark
 
 struct DetailView: View {
+    @State private var layout = LayoutMetrics()
     @Bindable private var store: StoreOf<DetailReducer>
     private let gid: String
     private let user: User
@@ -206,19 +207,20 @@ struct DetailView: View {
             }
             .background(navigationLinks)
             .toolbar(content: toolbar)
+        .trackLayout($layout)
     }
 }
 
 // MARK: NavigationLinks
 private extension DetailView {
     @ViewBuilder var navigationLinks: some View {
-        NavigationLink(unwrapping: $store.route, case: \.previews) { _ in
+        RouteDestination(unwrapping: $store.route, case: \.previews) { _ in
             PreviewsView(
                 store: store.scope(state: \.previewsState, action: \.previews),
                 gid: gid, setting: $setting, blurRadius: blurRadius
             )
         }
-        NavigationLink(unwrapping: $store.route, case: \.comments) { route in
+        RouteDestination(unwrapping: $store.route, case: \.comments) { route in
             if let commentStore = store.scope(state: \.commentsState.wrappedValue, action: \.comments) {
                 CommentsView(
                     store: commentStore, gid: gid, token: store.gallery.token, apiKey: store.apiKey,
@@ -228,7 +230,7 @@ private extension DetailView {
                 )
             }
         }
-        NavigationLink(unwrapping: $store.route, case: \.detailSearch) { route in
+        RouteDestination(unwrapping: $store.route, case: \.detailSearch) { route in
             if let detailSearchStore = store.scope(state: \.detailSearchState.wrappedValue, action: \.detailSearch) {
                 DetailSearchView(
                     store: detailSearchStore, keyword: route.wrappedValue, user: user, setting: $setting,
@@ -236,7 +238,7 @@ private extension DetailView {
                 )
             }
         }
-        NavigationLink(unwrapping: $store.route, case: \.galleryInfos) { route in
+        RouteDestination(unwrapping: $store.route, case: \.galleryInfos) { route in
             let (gallery, galleryDetail) = route.wrappedValue
             GalleryInfosView(
                 store: store.scope(state: \.galleryInfosState, action: \.galleryInfos),
@@ -402,6 +404,7 @@ private struct HeaderSection: View {
 
 // MARK: DescriptionSection
 private struct DescriptionSection: View {
+    @Environment(\.layoutMetrics) private var layout
     private let gallery: Gallery
     private let galleryDetail: GalleryDetail
     private let navigateGalleryInfosAction: () -> Void
@@ -441,7 +444,7 @@ private struct DescriptionSection: View {
         )
     ]}
     private var itemWidth: Double {
-        max(DeviceUtil.absWindowW / 5, 80)
+        max(layout.width / 5, 80)
     }
 
     var body: some View {
@@ -729,6 +732,7 @@ private extension TagsSection {
 
 // MARK: PreviewSection
 private struct PreviewsSection: View {
+    @Environment(\.layoutMetrics) private var layout
     private let pageCount: Int
     private let previewURLs: [Int: URL]
     private let navigatePreviewsAction: () -> Void
@@ -746,7 +750,7 @@ private struct PreviewsSection: View {
     }
 
     private var width: CGFloat {
-        Defaults.ImageSize.previewAvgW
+        layout.previewWidth
     }
     private var height: CGFloat {
         width / Defaults.ImageSize.previewAspect
@@ -892,7 +896,7 @@ private struct CommentButton: View {
 
 struct DetailView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             DetailView(
                 store: .init(initialState: .init(), reducer: DetailReducer.init),
                 gid: .init(),

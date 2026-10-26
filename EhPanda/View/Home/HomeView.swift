@@ -10,6 +10,7 @@ import SFSafeSymbols
 import ComposableArchitecture
 
 struct HomeView: View {
+    @State private var layout = LayoutMetrics()
     @Bindable private var store: StoreOf<HomeReducer>
     private let user: User
     @Binding private var setting: Setting
@@ -29,7 +30,7 @@ struct HomeView: View {
 
     // MARK: HomeView
     var body: some View {
-        NavigationView {
+        NavigationStack {
             let content =
             ZStack {
                 ScrollView(showsIndicators: false) {
@@ -95,22 +96,9 @@ struct HomeView: View {
             .background(navigationLinks)
             .toolbar(content: toolbar)
             .navigationTitle(L10n.Localizable.HomeView.Title.home)
+            .trackLayout($layout)
 
-            if DeviceUtil.isPad {
-                content
-                    .sheet(item: $store.route.sending(\.setNavigation).detail, id: \.self) { route in
-                        NavigationView {
-                            DetailView(
-                                store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
-                                gid: route.wrappedValue, user: user, setting: $setting,
-                                blurRadius: blurRadius, tagTranslator: tagTranslator
-                            )
-                        }
-                        .autoBlur(radius: blurRadius).environment(\.inSheet, true).navigationViewStyle(.stack)
-                    }
-            } else {
-                content
-            }
+            content
         }
     }
 
@@ -130,14 +118,12 @@ struct HomeView: View {
 // MARK: NavigationLinks
 private extension HomeView {
     @ViewBuilder var navigationLinks: some View {
-        if DeviceUtil.isPhone {
-            detailViewLink
-        }
+        detailViewLink
         miscGridLink
         sectionLink
     }
     var detailViewLink: some View {
-        NavigationLink(unwrapping: $store.route, case: \.detail) { route in
+        RouteDestination(unwrapping: $store.route, case: \.detail) { route in
             DetailView(
                 store: store.scope(state: \.detailState.wrappedValue!, action: \.detail),
                 gid: route.wrappedValue, user: user, setting: $setting,
@@ -146,7 +132,7 @@ private extension HomeView {
         }
     }
     var miscGridLink: some View {
-        NavigationLink(unwrapping: $store.route, case: \.misc) { route in
+        RouteDestination(unwrapping: $store.route, case: \.misc) { route in
             switch route.wrappedValue {
             case .popular:
                 PopularView(
@@ -167,7 +153,7 @@ private extension HomeView {
         }
     }
     var sectionLink: some View {
-        NavigationLink(unwrapping: $store.route, case: \.section) { route in
+        RouteDestination(unwrapping: $store.route, case: \.section) { route in
             switch route.wrappedValue {
             case .frontpage:
                 FrontpageView(
@@ -192,6 +178,7 @@ private extension HomeView {
 
 // MARK: CardSlideSection
 private struct CardSlideSection: View, Equatable {
+    @Environment(\.layoutMetrics) private var layout
     @StateObject private var page: Page = .withIndex(1)
     @Binding private var pageIndex: Int
 
@@ -231,7 +218,7 @@ private struct CardSlideSection: View, Equatable {
                 .tint(.primary).multilineTextAlignment(.leading)
             }
         }
-        .preferredItemSize(Defaults.FrameSize.cardCellSize)
+        .preferredItemSize(.init(width: layout.cardWidth, height: Defaults.FrameSize.cardCellHeight))
         .interactive(opacity: 0.2).itemSpacing(20)
         .loopPages().pagingPriority(.high)
         .synchronize($pageIndex, $page.index)
@@ -321,6 +308,7 @@ private struct VerticalCoverStack: View {
 
 // MARK: ToplistsSection
 private struct ToplistsSection: View {
+    @Environment(\.layoutMetrics) private var layout
     private let galleries: [Int: [Gallery]]
     private let isLoading: Bool
     private let navigateAction: (String) -> Void
@@ -383,7 +371,7 @@ private struct ToplistsSection: View {
                     galleries: galleries(type: type, range: 0...2), startRanking: 1,
                     navigateAction: navigateAction
                 )
-                if DeviceUtil.isPad {
+                if layout.isWide {
                     VerticalToplistsStack(
                         galleries: galleries(type: type, range: 3...5), startRanking: 4,
                         navigateAction: navigateAction
@@ -396,6 +384,7 @@ private struct ToplistsSection: View {
 }
 
 private struct VerticalToplistsStack: View {
+    @Environment(\.layoutMetrics) private var layout
     private let galleries: [Gallery]
     private let startRanking: Int
     private let navigateAction: (String) -> Void
@@ -420,7 +409,7 @@ private struct VerticalToplistsStack: View {
                 }
             }
         }
-        .frame(width: Defaults.FrameSize.rankingCellWidth)
+        .frame(width: layout.rankingWidth)
     }
 }
 

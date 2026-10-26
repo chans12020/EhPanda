@@ -75,7 +75,7 @@ struct LaboratoryCell: View {
 
 struct LaboratorySettingView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             LaboratorySettingView(
                 bypassesSNIFiltering: .constant(false)
             )

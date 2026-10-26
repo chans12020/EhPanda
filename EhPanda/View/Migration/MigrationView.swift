@@ -19,7 +19,7 @@ struct MigrationView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 reversedPrimary.ignoresSafeArea()
                 LoadingView(title: L10n.Localizable.LoadingView.Title.preparingDatabase)

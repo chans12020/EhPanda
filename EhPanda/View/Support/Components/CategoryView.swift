@@ -37,11 +37,12 @@ struct CategoryLabel: View {
 
 // MARK: CategoryView
 struct CategoryView: View {
+    @Environment(\.layoutMetrics) private var layout
     private let bindings: [Binding<Bool>]
 
-    private let gridItems = [
-        GridItem(.adaptive(minimum: DeviceUtil.isPadWidth ? 100 : 80, maximum: 100))
-    ]
+    private var gridItems: [GridItem] {
+        [GridItem(.adaptive(minimum: layout.isWide ? 100 : 80, maximum: 100))]
+    }
     private var tuples: [(Binding<Bool>, Category)] {
         Category.allFiltersCases.enumerated().map { value in
             (bindings[value.offset], value.element)

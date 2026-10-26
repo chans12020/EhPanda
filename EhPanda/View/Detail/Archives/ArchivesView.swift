@@ -7,6 +7,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct ArchivesView: View {
+    @State private var layout = LayoutMetrics()
     @Bindable private var store: StoreOf<ArchivesReducer>
     private let gid: String
     private let user: User
@@ -26,7 +27,7 @@ struct ArchivesView: View {
 
     // MARK: ArchiveView
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 VStack {
                     HathArchivesView(archives: store.hathArchives, selection: $store.selectedArchive)
@@ -73,12 +74,14 @@ struct ArchivesView: View {
                 store.send(.fetchArchive(gid, galleryURL, archiveURL))
             }
             .navigationTitle(L10n.Localizable.ArchivesView.Title.archives)
+            .trackLayout($layout)
         }
     }
 }
 
 // MARK: HathArchivesView
 private struct HathArchivesView: View {
+    @Environment(\.layoutMetrics) private var layout
     private let archives: [GalleryArchive.HathArchive]
     @Binding private var selection: GalleryArchive.HathArchive?
 
@@ -87,12 +90,9 @@ private struct HathArchivesView: View {
         _selection = selection
     }
 
-    private let gridItems = [
-        GridItem(.adaptive(
-            minimum: Defaults.FrameSize.archiveGridWidth,
-            maximum: Defaults.FrameSize.archiveGridWidth
-        ))
-    ]
+    private var gridItems: [GridItem] {
+        [GridItem(.adaptive(minimum: layout.archiveWidth, maximum: layout.archiveWidth))]
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -135,6 +135,7 @@ private struct ArchiveFundsView: View {
 
 // MARK: HathArchiveGrid
 private struct HathArchiveGrid: View {
+    @Environment(\.layoutMetrics) private var layout
     private let isSelected: Bool
     private let archive: GalleryArchive.HathArchive
 
@@ -151,7 +152,7 @@ private struct HathArchiveGrid: View {
         !archive.isValid ? disabledColor : nil
     }
     private var width: CGFloat {
-        Defaults.FrameSize.archiveGridWidth
+        layout.archiveWidth
     }
     private var height: CGFloat {
         width / 1.5
@@ -191,6 +192,7 @@ private struct HathArchiveGrid: View {
 
 // MARK: DownloadButton
 private struct DownloadButton: View {
+    @Environment(\.layoutMetrics) private var layout
     @State private var isPressing = false
 
     private var isDisabled: Bool
@@ -208,7 +210,7 @@ private struct DownloadButton: View {
         isDisabled ? .accentColor.opacity(0.5) : isPressing ? .accentColor.opacity(0.5) : .accentColor
     }
     private var paddingInsets: EdgeInsets {
-        DeviceUtil.isPadWidth
+        layout.isWide
             ? .init(top: 0, leading: 0, bottom: 30, trailing: 0)
             : .init(top: 0, leading: 10, bottom: 30, trailing: 10)
     }

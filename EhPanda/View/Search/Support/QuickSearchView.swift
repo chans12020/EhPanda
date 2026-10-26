@@ -18,7 +18,7 @@ struct QuickSearchView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 List {
                     ForEach(store.quickSearchWords) { word in
@@ -119,7 +119,7 @@ struct QuickSearchView: View {
         }
     }
     @ViewBuilder private var navigationLinks: some View {
-        NavigationLink(unwrapping: $store.route, case: \.newWord) { _ in
+        RouteDestination(unwrapping: $store.route, case: \.newWord) { _ in
             EditWordView(
                 title: L10n.Localizable.QuickSearchView.Title.newWord,
                 word: $store.editingWord,
@@ -131,7 +131,7 @@ struct QuickSearchView: View {
                 }
             )
         }
-        NavigationLink(unwrapping: $store.route, case: \.editWord) { _ in
+        RouteDestination(unwrapping: $store.route, case: \.editWord) { _ in
             EditWordView(
                 title: L10n.Localizable.QuickSearchView.Title.editWord,
                 word: $store.editingWord,

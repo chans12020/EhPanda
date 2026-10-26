@@ -43,3 +43,7 @@ The content in this application is derived from E-Hentai, which is user-generate
 
 ## Screenshots
 https://ehpanda.app
+
+## iPhone Duo adaptation
+
+This branch includes adaptive layout and reader changes for iPhone Duo. Building requires Xcode 27.1 or later; iOS 26 remains supported. See [build instructions and validation status](docs/iPhone-Duo.md).

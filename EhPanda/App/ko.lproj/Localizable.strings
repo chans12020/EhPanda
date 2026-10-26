@@ -904,3 +904,6 @@
 "enum.browsing_country.name.yemen" = "예멘";
 "enum.browsing_country.name.zambia" = "잠비아";
 "enum.browsing_country.name.zimbabwe" = "짐바브웨";
+
+/* Title for toolbar overflow menus on either bar axis. */
+"toolbar_item.button.more" = "더 보기";

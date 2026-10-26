@@ -8,19 +8,7 @@ import Foundation
 
 struct Defaults {
     struct FrameSize {
-        static let archiveGridWidth: CGFloat =
-        DeviceUtil.isPadWidth ? 175 : DeviceUtil.isSEWidth ? 125 : 150
-        static var cardCellWidth: CGFloat { DeviceUtil.windowW * 0.8 }
         static let cardCellHeight: CGFloat = Defaults.ImageSize.headerH + 20 * 2
-        static var cardCellSize: CGSize {
-            .init(width: cardCellWidth, height: cardCellHeight)
-        }
-        static var rankingCellWidth: CGFloat {
-            (DeviceUtil.isPadWidth ? 0.4 : 0.7) * DeviceUtil.windowW
-        }
-        static var alertWidthFactor: Double {
-            DeviceUtil.isPadWidth ? 0.5 : 1.0
-        }
     }
     struct ImageSize {
         static let rowAspect: CGFloat = 8/11
@@ -34,9 +22,6 @@ struct Defaults {
         static let rowH: CGFloat = 120
         static let headerW: CGFloat = headerH * headerAspect
         static let headerH: CGFloat = 150
-        static let previewMinW: CGFloat = DeviceUtil.isPadWidth ? 180 : 100
-        static let previewMaxW: CGFloat = DeviceUtil.isPadWidth ? 220 : 120
-        static let previewAvgW: CGFloat = (previewMinW + previewMaxW) / 2
     }
     struct Cookie {
         static let yay = "yay"

@@ -9,6 +9,7 @@ import Kingfisher
 import UIImageColors
 
 struct GalleryCardCell: View {
+    @Environment(\.layoutMetrics) private var layout
     @Environment(\.colorScheme) private var colorScheme
 
     private let currentID: String
@@ -36,7 +37,7 @@ struct GalleryCardCell: View {
     }
     private var title: String {
         let trimmedTitle = gallery.trimmedTitle
-        guard !DeviceUtil.isPad, trimmedTitle.count > 20 else {
+        guard !layout.isWide, trimmedTitle.count > 20 else {
             return gallery.title
         }
         return trimmedTitle
@@ -63,7 +64,7 @@ struct GalleryCardCell: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
         }
-        .frame(width: Defaults.FrameSize.cardCellWidth).cornerRadius(15)
+        .frame(width: layout.cardWidth).cornerRadius(15)
     }
 }
 

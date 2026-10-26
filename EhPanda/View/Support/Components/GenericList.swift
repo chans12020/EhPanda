@@ -8,6 +8,7 @@ import WaterfallGrid
 import ComposableArchitecture
 
 struct GenericList: View {
+    @State private var layout = LayoutMetrics()
     private let galleries: [Gallery]
     private let setting: Setting
     private let pageNumber: PageNumber?
@@ -67,6 +68,7 @@ struct GenericList: View {
         .animation(.default, value: loadingState)
         .animation(.default, value: galleries)
         .refreshable { fetchAction?() }
+        .trackLayout($layout)
     }
 }
 
@@ -128,6 +130,7 @@ private struct DetailList: View {
 
 // MARK: WaterfallList
 private struct WaterfallList: View {
+    @Environment(\.layoutMetrics) private var layout
     private let galleries: [Gallery]
     private let setting: Setting
     private let pageNumber: PageNumber?
@@ -137,10 +140,10 @@ private struct WaterfallList: View {
     private let translateAction: ((String) -> (String, TagTranslation?))?
 
     private var columnsInPortrait: Int {
-        DeviceUtil.isPadWidth ? 4 : 2
+        layout.thumbnailColumns
     }
     private var columnsInLandscape: Int {
-        DeviceUtil.isPadWidth ? 5 : 2
+        layout.thumbnailColumns
     }
 
     private var shouldShowFooter: Bool {

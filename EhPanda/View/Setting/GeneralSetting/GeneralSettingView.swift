@@ -189,7 +189,7 @@ struct GeneralSettingView: View {
     }
 
     private var navigationLink: some View {
-        NavigationLink(unwrapping: $store.route, case: \.logs) { _ in
+        RouteDestination(unwrapping: $store.route, case: \.logs) { _ in
             LogsView(store: store.scope(state: \.logsState, action: \.logs))
         }
     }
@@ -197,7 +197,7 @@ struct GeneralSettingView: View {
 
 struct GeneralSettingView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             GeneralSettingView(
                 store: .init(initialState: .init(), reducer: GeneralSettingReducer.init),
                 tagTranslatorLoadingState: .idle,

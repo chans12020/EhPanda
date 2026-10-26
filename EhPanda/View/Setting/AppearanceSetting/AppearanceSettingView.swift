@@ -103,7 +103,7 @@ struct AppearanceSettingView: View {
     }
 
     private var navigationLink: some View {
-        NavigationLink(unwrapping: $store.route, case: \.appIcon) { _ in
+        RouteDestination(unwrapping: $store.route, case: \.appIcon) { _ in
             AppIconView(appIconType: $appIconType)
         }
     }
@@ -222,7 +222,7 @@ extension AppIconType {
 
 struct AppearanceSettingView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             AppearanceSettingView(
                 store: .init(initialState: .init(), reducer: AppearanceSettingReducer.init),
                 preferredColorScheme: .constant(.automatic),

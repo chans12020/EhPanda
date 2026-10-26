@@ -38,7 +38,6 @@ struct AppReducer {
 
     @Dependency(\.hapticsClient) private var hapticsClient
     @Dependency(\.cookieClient) private var cookieClient
-    @Dependency(\.deviceClient) private var deviceClient
 
     var body: some Reducer<State, Action> {
         LoggingReducer {
@@ -80,14 +79,6 @@ struct AppReducer {
 
                 case .appDelegate:
                     return .none
-
-                case .appRoute(.clearSubStates):
-                    var effects = [Effect<Action>]()
-                    if deviceClient.isPad() {
-                        state.settingState.route = nil
-                        effects.append(.send(.setting(.clearSubStates)))
-                    }
-                    return effects.isEmpty ? .none : .merge(effects)
 
                 case .appRoute:
                     return .none
@@ -139,9 +130,6 @@ struct AppReducer {
                             effects.append(hapticEffect)
                         }
                     }
-                    if type == .setting && deviceClient.isPad() {
-                        effects.append(.send(.appRoute(.setNavigation(.setting()))))
-                    }
                     return effects.isEmpty ? .none : .merge(effects)
 
                 case .tabBar:
@@ -156,7 +144,7 @@ struct AppReducer {
                     if !cookieClient.didLogin {
                         effects.append(
                             .run { send in
-                                let delay = UInt64(deviceClient.isPad() ? 1200 : 200)
+                                let delay = UInt64(200)
                                 try await Task.sleep(for: .milliseconds(delay))
                                 await send(.setting(.account(.setNavigation(.login))))
                             }

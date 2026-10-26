@@ -54,7 +54,7 @@ struct LogsView: View {
     }
 
     private var navigationLink: some View {
-        NavigationLink(unwrapping: $store.route, case: \.log) { route in
+        RouteDestination(unwrapping: $store.route, case: \.log) { route in
             LogView(log: route.wrappedValue)
         }
     }
@@ -171,7 +171,7 @@ extension Log: CustomStringConvertible {
 
 struct LogsView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+        NavigationStack {
             LogsView(store: .init(initialState: .init(), reducer: LogsReducer.init))
         }
     }

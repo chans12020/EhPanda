@@ -7,6 +7,7 @@ import SwiftUI
 import Kingfisher
 
 struct TagSuggestionView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Binding private var keyword: String
     private let translations: [String: TagTranslation]
     private let showsImages: Bool
@@ -23,7 +24,7 @@ struct TagSuggestionView: View {
 
     var body: some View {
         if isEnabled {
-            if DeviceUtil.isPhone {
+            if horizontalSizeClass == .compact {
                 Text(L10n.Localizable.Searchable.Title.matchesCount(translationHandler.suggestions.count))
                     .foregroundColor(.secondary)
                     .font(.subheadline)
@@ -46,6 +47,7 @@ struct TagSuggestionView: View {
 
 // MARK: SuggestionCell
 private struct SuggestionCell: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private let suggestion: TagSuggestion
     private let showsImages: Bool
     private let action: () -> Void
@@ -62,7 +64,7 @@ private struct SuggestionCell: View {
     }
 
     var body: some View {
-        if DeviceUtil.isPhone {
+        if horizontalSizeClass == .compact {
             HStack(spacing: 20) {
                 Image(systemSymbol: .magnifyingglass)
 
