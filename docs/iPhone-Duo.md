@@ -54,7 +54,9 @@ DEVELOPER_DIR=/Applications/Xcode_27.1.app/Contents/Developer \
 
 ## 验证状态
 
-当前开发机只有 Command Line Tools，没有完整 Xcode 和 iOS 模拟器。因此本次已完成独立布局/分页检查、Swift 源码语法检查、SwiftUI 测量辅助代码的 macOS 类型检查及项目/plist 校验；**尚未完成整个 iOS 应用编译、模拟器/真机验收或 IPA 导出**。首次在 Xcode 构建时还需解析原项目的 Swift Package 依赖。
+2026-10-26 已在 [GitHub Actions 构建 #3](https://github.com/chans12020/EhPanda/actions/runs/40331420178) 完成 Xcode 27.1 / iOS 27.1 SDK 的真机 Release 归档和未签名 IPA 打包。源码提交为 `f4ccb1bfca2bae13c00708c6a92fb219a5e5d86c`。布局/分页检查的 62,244 项断言通过，上传与本地下载的文件校验一致；已确认包内为 iPhoneOS arm64 程序并包含分享扩展。尚未做模拟器交互和真机功能验收。
+
+生成文件：`build/EhPanda-Duo-unsigned.ipa`，7,340,563 字节。SHA-256：`9d69b7d4b98ac220df02162788db69aefd9b55869e45ade033a5c16eaaa9c8e4`。
 
 ## Apple 官方参考
 
