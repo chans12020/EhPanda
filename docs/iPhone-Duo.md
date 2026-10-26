@@ -67,3 +67,5 @@ DEVELOPER_DIR=/Applications/Xcode_27.1.app/Contents/Developer \
 ## GitHub Actions 构建 IPA
 
 `Build iPhone Duo IPA` 工作流使用 GitHub 的 `xcode-27` 镜像与 Xcode 27.1，向 `codex/iphone-duo-adaptation` 分支推送时自动构建。成功后下载 `EhPanda-Duo-unsigned` 附件，其中包含 IPA 和 SHA-256 校验文件。IPA 仍需由 Sideloadly 等侧载工具重新签名后安装。构建失败时可下载 `EhPanda-Duo-build-log` 查看编译日志。
+
+构建兼容性：TCA 的最低版本升级至 1.26.0，采用上游的 Xcode 27 / Swift 6.4 修复。Actions 使用 Bash 的 pipefail，编译失败会正确标记为失败。日志附件同时保存云端解析出的 Package.resolved。

@@ -18,6 +18,9 @@ jobs:
     name: Archive and package IPA
     runs-on: xcode-27
     timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
     env:
       DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
     steps:
@@ -52,6 +55,8 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: EhPanda-Duo-build-log
-          path: build/ipa-build.log
+          path: |
+            build/ipa-build.log
+            EhPanda.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
           if-no-files-found: ignore
           retention-days: 7
