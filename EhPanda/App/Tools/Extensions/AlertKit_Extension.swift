@@ -20,6 +20,7 @@ extension View {
 
 private struct JumpPageAlert<Content: View>: View {
     @Environment(\.colorScheme) private var colorScheme
+    @State private var layout = LayoutMetrics()
 
     private let content: Content
     @Binding private var index: String
@@ -48,7 +49,7 @@ private struct JumpPageAlert<Content: View>: View {
     }
 
     private var widthFactor: Double {
-        Defaults.FrameSize.alertWidthFactor
+        Double(min(1, 420 / layout.width))
     }
     private var backgroundOpacity: Double {
         colorScheme == .light ? 0.2 : 0.5
@@ -75,5 +76,6 @@ private struct JumpPageAlert<Content: View>: View {
         )
         .synchronize($isFocused, $focused)
         .synchronize($isPresented, $manager.isPresented)
+        .trackLayout($layout)
     }
 }
